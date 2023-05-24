@@ -47,10 +47,11 @@ require('packer').startup(function(use)
   use { 'numToStr/Comment.nvim' }
   use { 'simrat39/rust-tools.nvim' }
   use { "nvim-tree/nvim-tree.lua" }
+  use { "windwp/nvim-autopairs" }
 end)
 
 -- common keymaps
-local keymap = vim.api.nvim_set_keymap
+local keymap = vim.keymap.set
 local nmap_opts = { noremap = true, silent = true }
 --Remap space as leader key
 keymap("", "<Space>", "<Nop>", nmap_opts)
@@ -89,9 +90,9 @@ require('lualine').setup {
 require("Comment").setup()
 
 -- telescope
-keymap("n", "<leader>f", "<cmd>Telescope find_files hidden=true<cr>", nmap_opts)
---keymap("n", "<leader>f", "<cmd>lua require'telescope.builtin'.find_files(require('telescope.themes').get_dropdown({ previewer = false }))<cr>", opts)
 keymap("n", "<c-t>", "<cmd>Telescope live_grep<cr>", nmap_opts)
+keymap("n", "<leader>tf", "<cmd>Telescope find_files hidden=true<cr>", nmap_opts)
+keymap("n", "<leader>tb", "<cmd>Telescope buffers<cr>", nmap_opts)
 
 -- mason
 require("mason").setup {}
@@ -113,34 +114,36 @@ require("nvim-tree").setup({
 keymap("n", "<leader>e", "<cmd>NvimTreeToggle<cr>", nmap_opts)
 
 -- LSP
-
 local cmp_capabilities = require("cmp_nvim_lsp").default_capabilities()
-local function lsp_on_attach(_, buf)
-  local opts1 = { noremap = true, silent = true }
-  vim.api.nvim_buf_set_keymap(buf, "n", "gD", "<cmd>lua vim.lsp.buf.declaration()<CR>", opts1)
-  vim.api.nvim_buf_set_keymap(buf, "n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", opts1)
-  vim.api.nvim_buf_set_keymap(buf, "n", "K", "<cmd>lua vim.lsp.buf.hover()<CR>", opts1)
-  vim.api.nvim_buf_set_keymap(buf, "n", "gi", "<cmd>lua vim.lsp.buf.implementation()<CR>", opts1)
-  vim.api.nvim_buf_set_keymap(buf, "n", "<C-k>", "<cmd>lua vim.lsp.buf.signature_help()<CR>", opts1)
-  vim.api.nvim_buf_set_keymap(buf, "n", "<leader>rn", "<cmd>lua vim.lsp.buf.rename()<CR>", opts1)
-  vim.api.nvim_buf_set_keymap(buf, "n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>", opts1)
-  vim.api.nvim_buf_set_keymap(buf, "n", "<leader>ca", "<cmd>lua vim.lsp.buf.code_action()<CR>", opts)
-  -- vim.api.nvim_buf_set_keymap(bufnr, "n", "<leader>f", "<cmd>lua vim.diagnostic.open_float()<CR>", opts)
-  vim.api.nvim_buf_set_keymap(buf, "n", "[d", '<cmd>lua vim.diagnostic.goto_prev({ border = "rounded" })<CR>', opts1)
-  vim.api.nvim_buf_set_keymap(buf, "n", "gl", '<cmd>lua vim.diagnostic.open_float()<CR>', opts1)
-  vim.api.nvim_buf_set_keymap(buf, "n", "]d", '<cmd>lua vim.diagnostic.goto_next({ border = "rounded" })<CR>', opts1)
-  vim.api.nvim_buf_set_keymap(buf, "n", "<leader>q", "<cmd>lua vim.diagnostic.setloclist()<CR>", opts1)
-  -- vim.cmd [[ command! Format execute 'lua vim.lsp.buf.format()' ]]
-keymap("n", "<leader>l", "<cmd>lua vim.lsp.buf.format()<CR>", nmap_opts)
-  -- vim.api.nvim_buf_set_keymap(buf, "n", "<leader>l", "<cmd>lua vim.lsp.buf.format()<CR>", opts1)
-end
+
+vim.api.nvim_create_autocmd('LspAttach', {
+  group = vim.api.nvim_create_augroup('UserLspConfig', {}),
+  callback = function(ev)
+    -- Buffer local mappings.
+    -- See `:help vim.lsp.*` for documentation on any of the below functions
+    local buf_opts = { buffer = ev.buf }
+    keymap('n', 'gd', vim.lsp.buf.definition, buf_opts)
+    keymap('n', 'gD', vim.lsp.buf.declaration, buf_opts)
+    keymap('n', 'gi', vim.lsp.buf.implementation, buf_opts)
+    keymap('n', 'gr', vim.lsp.buf.references, buf_opts)
+    keymap('n', '<leader>rn', vim.lsp.buf.rename, buf_opts)
+    keymap('n', '<leader>l', function() vim.lsp.buf.format { async = true } end, buf_opts)
+    keymap({ 'n', 'v' }, '<leader>ca', vim.lsp.buf.code_action, buf_opts)
+    keymap('n', 'K', vim.lsp.buf.hover, buf_opts)
+    keymap('n', '<C-k>', vim.lsp.buf.signature_help, buf_opts)
+    -- wtf is it?
+    keymap('n', '<leader>wa', vim.lsp.buf.add_workspace_folder, buf_opts)
+    keymap('n', '<leader>wr', vim.lsp.buf.remove_workspace_folder, buf_opts)
+    keymap('n', '<leader>wl', function() print(vim.inspect(vim.lsp.buf.list_workspace_folders())) end, buf_opts)
+    keymap('n', '<leader>D', vim.lsp.buf.type_definition, buf_opts)
+  end,
+})
 
 -- lsp servers
 local lspconfig = require('lspconfig')
 -- lua. just for neovim - from documentation
 lspconfig.lua_ls.setup {
   capabilities = cmp_capabilities,
-  on_attach = lsp_on_attach,
   settings = {
     Lua = {
       runtime = {
@@ -179,7 +182,6 @@ rt.setup({
     },
   },
   server = {
-    on_attach = lsp_on_attach,
     capabilities = cmp_capabilities,
     settings = {
       ["rust-analyzer"] = {
@@ -192,9 +194,12 @@ rt.setup({
 })
 
 lspconfig.clangd.setup {
-  on_attach = lsp_on_attach,
   capabilities = cmp_capabilities,
 }
+
+-- autopairs
+require("nvim-autopairs").setup {}
+local cmp_autopairs = require('nvim-autopairs.completion.cmp')
 
 -- completion
 local luasnip = require("luasnip")
@@ -276,3 +281,8 @@ cmp.setup({
     { name = "path" },
   }
 })
+
+cmp.event:on(
+  'confirm_done',
+  cmp_autopairs.on_confirm_done()
+)
