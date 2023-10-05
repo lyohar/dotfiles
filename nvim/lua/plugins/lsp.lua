@@ -6,20 +6,12 @@ return {
     },
     config = function()
       local mason = require("mason")
+      mason.setup()
       local mason_lspconfig = require("mason-lspconfig")
-      mason.setup({
-        ui = {
-          icons = {
-            package_installed = "✓",
-            package_pending = "➜",
-            package_uninstalled = "✗",
-          },
-        },
-      })
-
       mason_lspconfig.setup({
         ensure_installed = { "lua_ls", "pylsp" },
-        automatic_installation = true,
+        --ensure_installed = { "lua_ls", "pylsp" },
+        --	automatic_installation = true,
       })
     end,
   },
@@ -77,6 +69,7 @@ return {
         opts.desc = "Restart LSP"
         keymap.set("n", "<leader>rs", ":LspRestart<CR>", opts) -- mapping to restart lsp if necessary
       end
+
       local capabilities = cmp_nvim_lsp.default_capabilities()
 
       local signs = { Error = " ", Warn = " ", Hint = "󰠠 ", Info = " " }
@@ -93,14 +86,12 @@ return {
       lspconfig["lua_ls"].setup({
         capabilities = capabilities,
         on_attach = on_attach,
-        settings = { -- custom settings for lua
+        settings = {
           Lua = {
-            -- make the language server recognize "vim" global
             diagnostics = {
               globals = { "vim" },
             },
             workspace = {
-              -- make language server aware of runtime files
               library = {
                 [vim.fn.expand("$VIMRUNTIME/lua")] = true,
                 [vim.fn.stdpath("config") .. "/lua"] = true,
