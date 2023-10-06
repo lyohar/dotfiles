@@ -20,5 +20,6 @@ keymap("", "<Space>", "<Nop>", nmap_opts)
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
-require("lazy").setup("plugins")
+require("options")
 
+require("lazy").setup("plugins")

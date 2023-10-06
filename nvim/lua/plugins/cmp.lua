@@ -1,4 +1,5 @@
 return {
+
   "hrsh7th/nvim-cmp",
   event = "InsertEnter",
   dependencies = {
@@ -40,6 +41,7 @@ return {
         { name = "luasnip" }, -- snippets
         { name = "buffer" }, -- text within current buffer
         { name = "path" }, -- file system paths
+        { name = "crates" },
       }),
       -- configure lspkind for vs-code like pictograms in completion menu
       formatting = {

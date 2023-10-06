@@ -8,14 +8,25 @@ return {
     end,
   },
   {
-    "akinsho/bufferline.nvim",
-    dependencies = { "nvim-tree/nvim-web-devicons" },
+    "akinsho/toggleterm.nvim",
     version = "*",
     opts = {
-      options = {
-        --mode = "tabs",
-        -- separator_style = "slant",
-      },
+      open_mapping = [[<c-\>]],
+      direction = "float",
     },
+    config = true,
+  },
+  {
+    "saecki/crates.nvim",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    config = function()
+      require("crates").setup({
+        src = {
+          cmp = {
+            enabled = true,
+          },
+        },
+      })
+    end,
   },
 }
