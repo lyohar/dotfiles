@@ -1,3 +1,5 @@
+require("options")
+
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 print(lazypath)
 if not vim.loop.fs_stat(lazypath) then
@@ -13,13 +15,4 @@ if not vim.loop.fs_stat(lazypath) then
   print("lazy has been istalled")
 end
 vim.opt.rtp:prepend(lazypath)
-
-local keymap = vim.keymap.set
-local nmap_opts = { noremap = true, silent = true }
-keymap("", "<Space>", "<Nop>", nmap_opts)
-vim.g.mapleader = " "
-vim.g.maplocalleader = " "
-
-require("options")
-
 require("lazy").setup("plugins")
